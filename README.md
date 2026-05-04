@@ -159,7 +159,7 @@ MIT © 2026 — [Guilherme Oliveira](https://github.com/Userlovesplay) — Desen
 
 ## 🔗 Links
 
-- **Demo**: [Gerador de Desculpas](gerador-de-desculpas.vercel.app)
+- **Demo**: [Gerador de Desculpas](https://gerador-de-desculpas-eight.vercel.app)
 - **Portfólio**: [Guilherme Oliveira](https://guilhermeoliveira.dev)
 
 ---
