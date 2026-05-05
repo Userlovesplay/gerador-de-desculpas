@@ -1,6 +1,6 @@
 import type { Desculpa } from "@/types";
 
-function sanitizeLanguage(text: string): string {
+export function sanitizeLanguage(text: string): string {
   // Remove gírias, palavrões e linguagem informal para ambiente corporativo
   const replacements: [RegExp, string][] = [
     [/\bputo\b|\bputa\b/gi, "insatisfeito"],

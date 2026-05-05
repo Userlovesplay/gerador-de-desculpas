@@ -32,7 +32,7 @@ import {
   type Canal,
 } from "@/constants";
 import type { Desculpa } from "@/types";
-import { generateMockExcuses } from "@/lib/mock-api";
+import { generateMockExcuses, sanitizeLanguage } from "@/lib/mock-api";
 import { generateExcusesWithGroq } from "@/lib/groq-api";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Header } from "@/components/Header";
@@ -127,7 +127,7 @@ export default function Home() {
         setHistory((prev) => [
           {
             id: crypto.randomUUID(),
-            situacao,
+            situacao: sanitizeLanguage(situacao.trim()),
             tom,
             formalidade,
             canal,
@@ -144,7 +144,7 @@ export default function Home() {
         setHistory((prev) => [
           {
             id: crypto.randomUUID(),
-            situacao,
+            situacao: sanitizeLanguage(situacao.trim()),
             tom,
             formalidade,
             canal,
