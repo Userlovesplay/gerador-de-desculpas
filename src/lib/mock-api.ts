@@ -29,6 +29,7 @@ export function generateMockExcuses(
 ): Desculpa[] {
   const tomLabel = getTomLabel(tom);
   const formalidadeLabel = getFormalidadeLabel(formalidade);
+  const channelKey = normalizeChannel(canal);
 
   function normalizeInput(text: string) {
     const t = text
@@ -121,65 +122,255 @@ export function generateMockExcuses(
   }
 
   const intent = extractIntentAndParaphrase(situacaoSanitized, language);
-  const isEmail = canal === "email";
-  const isSlack = canal === "slack";
-  const isWhatsapp = canal === "whatsapp";
-  const isChat = isSlack || isWhatsapp;
   const subjectShort = sanitizeLanguage(String(intent.subject)).slice(0, 60);
+  const variants = buildVariants({
+    language,
+    tom,
+    formalidade,
+    canal: channelKey,
+    tomLabel,
+    formalidadeLabel,
+    subjectShort,
+    intentBody: intent.body,
+  });
+
+  return variants;
+}
+
+function buildVariants({
+  language,
+  tom,
+  formalidade,
+  canal,
+  tomLabel,
+  formalidadeLabel,
+  subjectShort,
+  intentBody,
+}: {
+  language: "pt-BR" | "en";
+  tom: string;
+  formalidade: string;
+  canal: string;
+  tomLabel: string;
+  formalidadeLabel: string;
+  subjectShort: string;
+  intentBody: string[];
+}): Desculpa[] {
+  const isEmail = canal === "email";
+  const isChat = canal === "slack" || canal === "whatsapp";
+  const isLive = canal === "presencial" || canal === "reuniao";
+  const base = createBaseMessage(language, tom, formalidade, canal, intentBody);
+  const followUp = createFollowUpMessage(language, tom, formalidade, canal);
+  const closing = createClosingMessage(language, tom, formalidade, canal);
+
+  const formatText = (body: string[]) => {
+    if (isEmail) {
+      return `Subject: ${subjectShort}\n\n${body.join('\n\n')}`;
+    }
+    if (isChat) {
+      return body.join(' ');
+    }
+    if (isLive) {
+      return body.join('\n\n');
+    }
+    return body.join('\n\n');
+  };
 
   if (language === "en") {
-    const tomLabelEn = getTomLabelEn(tom);
-    const formalLabelEn = getFormalidadeLabelEn(formalidade);
     return [
       {
-        titulo: `Version ${tomLabelEn} Subtle`,
-        texto: isEmail ? `Subject: ${subjectShort}\n\n${intent.body.join('\n\n')}` : `${intent.body.join('\n\n')}`,
+        titulo: `Version ${getTomLabelEn(tom)} Subtle`,
+        texto: formatText([base.subtle, followUp.subtle]),
         nivelDeRisco: "baixo" as const,
-        analise: "This version sounds calm and direct. It works best when you want to acknowledge the issue without sounding stiff or overexplained.",
+        analise: "This version is calm and clear. It keeps the message professional without sounding rigid or overly defensive.",
       },
       {
-        titulo: `Version ${formalLabelEn} Direct`,
-        texto: isEmail ? `Subject: ${subjectShort}\n\n${intent.body.join('\n\n')}` : `${intent.body.join('\n\n')}`,
+        titulo: `Version ${getFormalidadeLabelEn(formalidade)} Direct`,
+        texto: formatText([base.direct, followUp.direct]),
         nivelDeRisco: "medio" as const,
-        analise: "This version is more straightforward. Use it when you want to sound responsible and practical, without adding extra drama.",
+        analise: "This version is more structured. It is a good fit when you need to show ownership and next steps without adding noise.",
       },
       {
-        titulo: `Executive Strategic Version`,
-        texto: isEmail ? `Subject: ${subjectShort}\n\n${intent.body.join('\n\n')}` : `${intent.body.join('\n\n')}`,
+        titulo: "Executive Strategic Version",
+        texto: formatText([base.executive, closing.executive]),
         nivelDeRisco: "alto" as const,
-        analise: "This version is firmer and more assertive. It works when you want to sound in control, but it can feel a bit heavier if the situation is sensitive.",
+        analise: "This version sounds firmer and more managerial. It works when you need authority and a concrete recovery plan.",
       },
     ];
   }
 
-  const portuguesVersions: Desculpa[] = [
+  const toneHint = getToneHintPt(tom);
+  const formalityHint = getFormalityHintPt(formalidade);
+  const liveHint = isLive
+    ? "Em conversa presencial ou reunião, a formulação fica mais natural, sem o peso de um texto de e-mail."
+    : "";
+
+  return [
     {
-      titulo: `Versão ${tomLabel} Suttil`,
-      texto: isEmail 
-        ? `Assunto: ${subjectShort}\n\n${intent.body.join('\n\n')}`
-        : `${intent.body.join('\n\n')}`,
+      titulo: `Versão ${tomLabel} Sutil`,
+      texto: formatText([base.subtle, followUp.subtle]),
       nivelDeRisco: "baixo" as const,
-      analise: "Essa versão é mais leve e humana. Funciona quando você quer admitir o problema sem soar engessado.",
+      analise: `${toneHint} ${liveHint}`.trim(),
     },
     {
       titulo: `Versão ${formalidadeLabel} Direta`,
-      texto: isEmail 
-        ? `Assunto: ${subjectShort}\n\n${intent.body.join('\n\n')}`
-        : `${intent.body.join('\n\n')}`,
+      texto: formatText([base.direct, followUp.direct]),
       nivelDeRisco: "medio" as const,
-      analise: "Essa versão vai mais ao ponto. É útil quando você quer ser objetivo e passar responsabilidade sem enrolar.",
+      analise: `${formalityHint} ${liveHint}`.trim(),
     },
     {
-      titulo: `Versão Executiva Estratégica`,
-      texto: isEmail 
-        ? `Assunto: ${subjectShort}\n\n${intent.body.join('\n\n')}`
-        : `${intent.body.join('\n\n')}`,
+      titulo: "Versão Executiva Estratégica",
+      texto: formatText([base.executive, closing.executive]),
       nivelDeRisco: "alto" as const,
-      analise: "Essa versão soa mais firme e estratégica. Use quando precisar de postura, mas sem cair em texto corporativo demais.",
-    }
+      analise: `Essa versão reforça responsabilidade e plano de ação. ${liveHint}`.trim(),
+    },
   ];
+}
 
-  return portuguesVersions;
+function createBaseMessage(
+  language: "pt-BR" | "en",
+  tom: string,
+  formalidade: string,
+  canal: string,
+  intentBody: string[],
+) {
+  const technical = tom === "tecnico";
+  const formal = formalidade === "formal" || formalidade === "executivo";
+  const live = canal === "presencial" || canal === "reuniao";
+
+  if (language === "en") {
+    const opening = technical
+      ? "I want to be transparent about the issue and the impact it created."
+      : formal
+        ? "I want to acknowledge the issue clearly and professionally."
+        : "I wanted to flag the situation honestly and without unnecessary detail.";
+
+    const middle = live
+      ? "I have already reviewed the situation and I am focused on correcting it as quickly as possible."
+      : intentBody[0];
+
+    return {
+      subtle: `${opening} ${middle}`,
+      direct: `${middle} ${intentBody[1] ?? "I will send the follow-up with the next steps shortly."}`,
+      executive: `${opening} I have already reviewed the process, identified the gap, and started the correction plan.`,
+    };
+  }
+
+  const opening = technical
+    ? "Reconheço o ponto técnico da situação e o impacto que isso gerou no andamento."
+    : formal
+      ? "Reconheço a ocorrência e quero tratar o assunto com objetividade e responsabilidade."
+      : "Quero tratar essa situação de forma direta e sem rodeios.";
+
+  const middle = live
+    ? "Já revisei o contexto e estou focado em corrigir o problema com o mínimo de ruído possível."
+    : intentBody[0];
+
+  return {
+    subtle: `${opening} ${middle}`,
+    direct: `${middle} ${intentBody[1] ?? "Em seguida, apresento os próximos passos de forma clara."}`,
+    executive: `${opening} Já revisei o fluxo, identifiquei a falha e iniciei a correção para evitar recorrência.`,
+  };
+}
+
+function createFollowUpMessage(
+  language: "pt-BR" | "en",
+  tom: string,
+  formalidade: string,
+  canal: string,
+) {
+  const technical = tom === "tecnico";
+  const formal = formalidade === "formal" || formalidade === "executivo";
+  const live = canal === "presencial" || canal === "reuniao";
+
+  if (language === "en") {
+    return {
+      subtle: live
+        ? "I can share a concise recovery plan with checkpoints right after this conversation."
+        : "I can share a concise recovery plan with checkpoints today.",
+      direct: technical
+        ? "I am prioritizing the delivery and can provide a revised timeline with clear checkpoints today."
+        : formal
+          ? "I am prioritizing the correction and can provide a clear action plan today."
+          : "I can send the next steps today in a simple and direct format.",
+      executive: "I am prioritizing the delivery and can present a revised timeline with checkpoints today to restore predictability.",
+    };
+  }
+
+  return {
+    subtle: live
+      ? "Posso apresentar um encaminhamento objetivo com os próximos passos assim que encerrarmos."
+      : "Posso enviar um encaminhamento objetivo com os próximos passos ainda hoje.",
+    direct: technical
+      ? "Estou priorizando a entrega e posso apresentar ainda hoje um novo cronograma com checkpoints claros."
+      : formal
+        ? "Estou priorizando a correção e posso enviar ainda hoje um plano de ação claro."
+        : "Posso mandar hoje mesmo os próximos passos em formato simples e direto.",
+    executive: "Estou priorizando a entrega e posso apresentar ainda hoje um novo cronograma com checkpoints claros para garantir previsibilidade.",
+  };
+}
+
+function createClosingMessage(
+  language: "pt-BR" | "en",
+  tom: string,
+  formalidade: string,
+  canal: string,
+) {
+  const technical = tom === "tecnico";
+  const formal = formalidade === "formal" || formalidade === "executivo";
+  const live = canal === "presencial" || canal === "reuniao";
+
+  if (language === "en") {
+    return {
+      subtle: live
+        ? "I am available to answer questions and align on the next step right now."
+        : "I am available to answer questions and align on the next step.",
+      direct: technical
+        ? "I will keep the communication short and focused on the corrective actions."
+        : formal
+          ? "I will keep the communication objective and focused on the corrective actions."
+          : "I will keep the communication simple and focused on the corrective actions.",
+      executive: "I will keep the communication focused on ownership, recovery, and follow-through.",
+    };
+  }
+
+  return {
+    subtle: live
+      ? "Fico à disposição para alinhar os detalhes e responder o que for necessário agora mesmo."
+      : "Fico à disposição para alinhar os detalhes e responder o que for necessário.",
+    direct: technical
+      ? "Vou manter a comunicação objetiva e focada nas correções necessárias."
+      : formal
+        ? "Vou manter a comunicação objetiva e concentrada nas correções necessárias."
+        : "Vou manter a comunicação simples e focada no que precisa ser feito.",
+    executive: "Vou manter a comunicação centrada em responsabilidade, recuperação e acompanhamento.",
+  };
+}
+
+function normalizeChannel(canal: string) {
+  return canal === "reuniao" ? "presencial" : canal;
+}
+
+function getToneHintPt(tom: string) {
+  const hints: Record<string, string> = {
+    tecnico: "O tom técnico traz precisão e reduz a chance de soar improvisado.",
+    sincero: "O tom sincero deixa a admissão mais humana, sem perder a postura.",
+    diplomatico: "O tom diplomático ajuda a suavizar a mensagem sem tirar a responsabilidade.",
+    dramatico: "O tom dramático fica mais intenso, então a versão mantém o texto controlado.",
+    espirituoso: "O tom espirituoso é contido aqui para continuar apropriado ao ambiente profissional.",
+    vago: "O tom vago vira uma formulação mais neutra para evitar ruído desnecessário.",
+  };
+  return hints[tom] || "A formulação foi ajustada para ficar profissional e coerente com o pedido.";
+}
+
+function getFormalityHintPt(formalidade: string) {
+  const hints: Record<string, string> = {
+    casual: "A formalidade casual deixa o texto mais próximo de uma conversa real.",
+    neutro: "A formalidade neutra mantém equilíbrio entre clareza e profissionalismo.",
+    formal: "A formalidade alta reforça responsabilidade e organização na mensagem.",
+    executivo: "A formalidade executiva eleva a mensagem para um tom mais institucional.",
+  };
+  return hints[formalidade] || "A formalidade foi ajustada para preservar clareza e postura.";
 }
 
 function getTomLabelEn(tom: string): string {

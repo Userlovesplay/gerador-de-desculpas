@@ -205,12 +205,12 @@ export default function Home() {
 
   return (
     <div className="bg-noise min-h-screen text-foreground">
-      <div className="relative mx-auto max-w-7xl px-6 py-12 md:px-10 md:py-20">
+      <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 md:px-10 md:py-20">
         <div className="fade-slide-up delay-100">
           <Header />
         </div>
         
-        <main className="mt-14 grid gap-12 lg:mt-20 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16">
+        <main className="mt-10 grid gap-10 lg:mt-20 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-16">
           {/* Form column */}
           <section className="fade-slide-up delay-200">
             <form onSubmit={handleSubmit} className="space-y-10">
@@ -306,13 +306,13 @@ export default function Home() {
                 <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
                   {t("variationsPerGeneration")}
                 </p>
-                <div className="flex items-center gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   {resultado && (
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={handleReset}
-                      className="font-mono text-xs uppercase tracking-[0.22em]"
+                      className="w-full font-mono text-xs uppercase tracking-[0.22em] sm:w-auto"
                     >
                       <RotateCcw className="mr-2 h-3.5 w-3.5" />
                       {t("resetButton")}
@@ -321,7 +321,7 @@ export default function Home() {
                   <Button
                     type="submit"
                     disabled={!isValid || isPending}
-                    className="group h-12 rounded-none bg-foreground px-8 font-mono text-xs uppercase tracking-[0.22em] text-background transition-all hover:bg-foreground/90 disabled:opacity-40"
+                    className="group h-12 w-full rounded-none bg-foreground px-6 font-mono text-xs uppercase tracking-[0.22em] text-background transition-all hover:bg-foreground/90 disabled:opacity-40 sm:w-auto sm:px-8"
                   >
                     {isPending ? (
                       <span className="flex items-center">
@@ -355,7 +355,7 @@ export default function Home() {
                 </div>
               ) : resultado ? (
                 <div className="fade-slide-up delay-100">
-                  <div className="mb-10 flex items-baseline justify-between border-b border-foreground/20 pb-4">
+                  <div className="mb-10 flex flex-col gap-2 border-b border-foreground/20 pb-4 sm:flex-row sm:items-baseline sm:justify-between">
                     <h2 className="font-serif text-2xl italic">{t("results")}</h2>
                     <span className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80">
                       {t("resultsHint")}
@@ -365,26 +365,26 @@ export default function Home() {
                     {resultado.map((d, i) => (
                       <article
                         key={i}
-                        className="group relative border border-foreground/20 bg-card/60 p-8 transition-colors hover:border-foreground/40 md:p-10 fade-slide-up"
+                        className="group relative border border-foreground/20 bg-card/60 p-6 transition-colors hover:border-foreground/40 sm:p-8 md:p-10 fade-slide-up"
                         style={{ animationDelay: `${i * 0.1}s` }}
                       >
-                        <header className="flex items-start justify-between gap-6 border-b border-foreground/20 pb-5">
-                          <div>
+                        <header className="flex flex-col gap-4 border-b border-foreground/20 pb-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                          <div className="min-w-0">
                             <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-foreground/60">
                               {t("versaoLabel")} {String(i + 1).padStart(2, "0")}
                             </p>
-                            <h3 className="mt-2 font-serif text-2xl leading-tight md:text-3xl">
+                            <h3 className="mt-2 break-words font-serif text-xl leading-tight sm:text-2xl md:text-3xl">
                               {d.titulo}
                             </h3>
                           </div>
                           <span
-                            className={`shrink-0 rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] ${RISCO_STYLES[d.nivelDeRisco]}`}
+                            className={`inline-flex w-fit shrink-0 rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.18em] ${RISCO_STYLES[d.nivelDeRisco]}`}
                           >
                             {riscoLabels[d.nivelDeRisco]}
                           </span>
                         </header>
 
-                        <p className="mt-7 whitespace-pre-line font-serif text-lg leading-[1.7] text-foreground/90 md:text-xl">
+                        <p className="mt-6 whitespace-pre-line font-serif text-base leading-[1.7] text-foreground/90 sm:text-lg md:text-xl">
                           {d.texto}
                         </p>
 
@@ -392,17 +392,17 @@ export default function Home() {
                           <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80">
                             {t("analysis")}
                           </p>
-                          <p className="mt-2 font-serif text-base italic leading-relaxed text-foreground/80">
+                          <p className="mt-2 font-serif text-sm italic leading-relaxed text-foreground/80 sm:text-base">
                             {d.analise}
                           </p>
                         </div>
 
-                        <div className="mt-8 flex justify-end">
+                        <div className="mt-8 flex justify-start sm:justify-end">
                           <Button
                             type="button"
                             variant="ghost"
                             onClick={() => handleCopy(d.texto, i)}
-                            className="rounded-none font-mono text-[10px] uppercase tracking-[0.22em]"
+                            className="w-full rounded-none font-mono text-[10px] uppercase tracking-[0.22em] sm:w-auto"
                           >
                             {copiedIdx === i ? (
                               <>
@@ -506,7 +506,7 @@ function SituacaoField({
         rows={5}
         placeholder={t("situacaoPlaceholder")}
         maxLength={600}
-        className="mt-4 min-h-[140px] resize-none rounded-none border-0 border-b border-foreground/25 bg-transparent px-0 py-3 font-serif text-xl leading-relaxed placeholder:text-foreground/50 focus-visible:border-foreground focus-visible:ring-0"
+        className="mt-4 min-h-[160px] resize-none rounded-none border-0 border-b border-foreground/25 bg-transparent px-0 py-3 font-serif text-lg leading-relaxed placeholder:text-foreground/50 focus-visible:border-foreground focus-visible:ring-0 sm:min-h-[140px] sm:text-xl"
       />
       <div className="mt-5 flex flex-wrap items-center gap-2">
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground/80">
@@ -604,18 +604,18 @@ function HistoryPanel({
   const { t } = useLanguage();
   if (history.length === 0) {
     return (
-      <div className="border border-dashed border-foreground/25 p-6">
+      <div className="border border-dashed border-foreground/25 p-5 sm:p-6">
         <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80">
           {t("historicoTitle")}
         </p>
-        <p className="mt-3 font-serif text-base italic leading-relaxed text-foreground/75">
+        <p className="mt-3 font-serif text-sm italic leading-relaxed text-foreground/75 sm:text-base">
           {t("historicoEmpty")}
         </p>
       </div>
     );
   }
   return (
-    <div className="border border-foreground/20 bg-card/40 p-6">
+    <div className="border border-foreground/20 bg-card/40 p-5 sm:p-6">
       <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80">
         {t("historicoTitle")}
       </p>
@@ -627,7 +627,7 @@ function HistoryPanel({
               onClick={() => onLoad(entry)}
               className="group block w-full border-l-2 border-foreground/20 pl-4 text-left transition-colors hover:border-foreground"
             >
-              <p className="font-serif text-sm leading-snug text-foreground/85 line-clamp-2">
+              <p className="font-serif text-sm leading-snug text-foreground/85 line-clamp-2 sm:text-[15px]">
                 {entry.situacao}
               </p>
               <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground/80">
@@ -648,11 +648,11 @@ function HistoryPanel({
 function Manifesto() {
   const { t } = useLanguage();
   return (
-    <div className="mt-10 border-t border-foreground/20 pt-8">
+    <div className="mt-8 border-t border-foreground/20 pt-6 sm:mt-10 sm:pt-8">
       <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80">
         {t("manifesto")}
       </p>
-      <p className="mt-4 font-serif text-base italic leading-relaxed text-foreground/80">
+      <p className="mt-4 font-serif text-sm italic leading-relaxed text-foreground/80 sm:text-base">
         {t("manifestoText")}
       </p>
     </div>
@@ -662,17 +662,17 @@ function Manifesto() {
 function Footer() {
   const { t } = useLanguage();
   return (
-    <div className="mt-32 border-t border-foreground/20 pt-8 fade-in delay-300">
+    <div className="mt-20 border-t border-foreground/20 pt-8 sm:mt-24 md:mt-32 fade-in delay-300">
       <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
         <p className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80">
           {t("footerRights")}
         </p>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
           <a
             href="https://github.com/seu-usuario/gerador-de-desculpas"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80 hover:text-foreground transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80 transition-colors hover:text-foreground"
           >
             <Github className="h-3.5 w-3.5" />
             {t("repository")}
@@ -681,7 +681,7 @@ function Footer() {
             href="https://seu-portfolio.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80 hover:text-foreground transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground/80 transition-colors hover:text-foreground"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             {t("portfolio")}
