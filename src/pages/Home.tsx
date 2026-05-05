@@ -139,7 +139,7 @@ export default function Home() {
       } catch (error) {
         // Fallback to mock data if API fails
         console.warn("Groq API failed, using mock data:", error);
-        const mockData = generateMockExcuses(situacao.trim(), tom, formalidade, language);
+        const mockData = generateMockExcuses(situacao.trim(), tom, formalidade, canal, language);
         setResultado(mockData);
         setHistory((prev) => [
           {
